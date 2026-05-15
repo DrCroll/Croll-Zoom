@@ -47,6 +47,13 @@ Edit `config.lua`:
 | `Config.DisableWhenFreeAiming` | End zoom while aiming down sights |
 | `Config.DisallowInVehicle` | Block zoom while in any vehicle |
 | `Config.BlockVehicleFirstPerson` | Extra block when in vehicle **and** first-person view mode |
+| `Config.VersionCheck` | On server start, compare local version to [GitHub `version` file](https://github.com/DrCroll/Croll-Zoom) |
+
+## Version updates
+
+On resource start the server prints whether **Croll-Zoom** is up to date. Keep the root `version` file on GitHub in sync with `fxmanifest.lua` (`version 'x.y.z'`).
+
+Set `Config.VersionCheck = false` to disable the HTTP check.
 
 ## Export
 

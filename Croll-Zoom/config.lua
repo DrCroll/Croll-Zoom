@@ -27,3 +27,6 @@ Config.DisallowInVehicle = true
 
 -- Extra hard block: if player is in vehicle and view mode is first person, never zoom.
 Config.BlockVehicleFirstPerson = true
+
+-- Server console GitHub version check on resource start (uses repo `version` file).
+Config.VersionCheck = true

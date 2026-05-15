@@ -4,7 +4,7 @@ lua54 'yes'
 
 author 'DrCroll'
 
-version '1.1.0'
+version '1.2.0'
 
 shared_scripts {
     'config.lua',
@@ -12,4 +12,8 @@ shared_scripts {
 
 client_scripts {
     'client/main.lua',
+}
+
+server_scripts {
+    'server/version.lua',
 }
