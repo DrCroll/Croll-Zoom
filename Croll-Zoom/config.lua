@@ -39,5 +39,7 @@ Config.DisallowFirstPerson = false
 -- Extra hard block: if player is in vehicle and view mode is first person, never zoom.
 Config.BlockVehicleFirstPerson = true
 
--- Server console GitHub version check on resource start (uses repo `version` file).
+-- Server console GitHub version check on resource start.
 Config.VersionCheck = true
+-- Raw URL to version file (inner folder in https://github.com/DrCroll/Croll-Zoom/tree/main/Croll-Zoom).
+Config.VersionUrl = 'https://raw.githubusercontent.com/DrCroll/Croll-Zoom/main/Croll-Zoom/version'

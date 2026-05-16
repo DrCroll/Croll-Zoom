@@ -14,7 +14,14 @@ No framework, no bridge, no `ox_lib` requirement.
 
 ## Installation
 
-1. Copy the `Croll-Zoom` folder into your server `resources` directory.
+The [GitHub repo](https://github.com/DrCroll/Croll-Zoom) uses a nested layout (same as [Croll-Ammo](https://github.com/DrCroll/Croll-Ammo)):
+
+- **Repo root** — overview README only  
+- **[`Croll-Zoom/`](https://github.com/DrCroll/Croll-Zoom/tree/main/Croll-Zoom)** — the actual FiveM resource (`fxmanifest.lua`, `client/`, `server/`, etc.)
+
+Use the **inner** folder on your server, not the repository root.
+
+1. Download the [latest release](https://github.com/DrCroll/Croll-Zoom/releases) **or** copy the inner [`Croll-Zoom`](https://github.com/DrCroll/Croll-Zoom/tree/main/Croll-Zoom) folder into your server `resources` directory.
 2. Add to `server.cfg`:
 
    ```
@@ -22,6 +29,18 @@ No framework, no bridge, no `ox_lib` requirement.
    ```
 
 3. Restart the server or run `ensure Croll-Zoom` / `restart Croll-Zoom` in the server console.
+
+Your `resources` path should look like:
+
+```
+resources/
+  Croll-Zoom/
+    fxmanifest.lua
+    config.lua
+    client/
+    server/
+    version
+```
 
 ## Default controls
 
@@ -52,11 +71,16 @@ Edit `config.lua`:
 | `Config.DisallowInVehicle` | Block zoom while in any vehicle |
 | `Config.DisallowFirstPerson` | Block zoom while in first-person view (on foot) |
 | `Config.BlockVehicleFirstPerson` | Extra block when in vehicle **and** first-person view mode |
-| `Config.VersionCheck` | On server start, compare local version to [GitHub `version` file](https://github.com/DrCroll/Croll-Zoom) |
+| `Config.VersionCheck` | On server start, compare local version to GitHub |
+| `Config.VersionUrl` | Optional override for the raw `version` file URL |
 
 ## Version updates
 
-On resource start the server prints whether **Croll-Zoom** is up to date. Keep the root `version` file on GitHub in sync with `fxmanifest.lua` (`version 'x.y.z'`).
+On resource start the server fetches:
+
+`https://raw.githubusercontent.com/DrCroll/Croll-Zoom/main/Croll-Zoom/version`
+
+Keep that file in sync with `fxmanifest.lua` (`version 'x.y.z'`). See [`Croll-Zoom/version`](https://github.com/DrCroll/Croll-Zoom/blob/main/Croll-Zoom/version) on GitHub.
 
 Set `Config.VersionCheck = false` to disable the HTTP check.
 

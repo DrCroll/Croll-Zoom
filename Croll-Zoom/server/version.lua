@@ -1,12 +1,13 @@
 local version = (GetResourceMetadata(GetCurrentResourceName(), 'version', 0) or '0.0.0'):gsub('%s+', '')
-local versionUrl = 'https://raw.githubusercontent.com/DrCroll/Croll-Zoom/main/version'
+-- Same layout as Croll-Ammo: version file lives under the resource folder in the repo.
+local versionUrl = Config.VersionUrl or 'https://raw.githubusercontent.com/DrCroll/Croll-Zoom/main/Croll-Zoom/version'
 
 CreateThread(function()
     if Config.VersionCheck == false then return end
 
     PerformHttpRequest(versionUrl, function(code, body)
         if code ~= 200 or not body then
-            print('^3[Croll-Zoom]^0 Version check skipped (could not reach GitHub).')
+            print(('^3[Croll-Zoom]^0 Version check skipped (HTTP %s). URL: %s'):format(tostring(code), versionUrl))
             return
         end
 
