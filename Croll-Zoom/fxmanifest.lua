@@ -4,7 +4,7 @@ lua54 'yes'
 
 author 'DrCroll'
 
-version '1.2.0'
+version '1.2.2'
 
 shared_scripts {
     'config.lua',

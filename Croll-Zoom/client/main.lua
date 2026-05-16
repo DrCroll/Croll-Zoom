@@ -4,6 +4,10 @@ local EaseMs = math.max(0, tonumber(Config.EaseMs) or 200)
 local ZoomFov = math.max(1.0, math.min(130.0, tonumber(Config.ZoomFov) or 22.0))
 local BaseFollowLerp = math.max(0.01, math.min(1.0, tonumber(Config.BaseFollowLerp) or 0.14))
 local SnapDistance = math.max(0.1, tonumber(Config.SnapDistance) or 1.75)
+local FPForward = math.max(0.15, tonumber(Config.FirstPersonForward) or 1.0)
+local FPZOff = tonumber(Config.FirstPersonZOffset) or 0.5
+local WallClearance = math.max(0.05, tonumber(Config.WallClearance) or 0.18)
+local ProbeFlags = tonumber(Config.CollisionProbeFlags) or (1 | 16 | 256)
 
 local function lerp(a, b, t)
     return a + (b - a) * t
@@ -49,18 +53,68 @@ local function mayUseZoom()
     local ped = PlayerPedId()
     if not ped or ped == 0 or not DoesEntityExist(ped) or IsEntityDead(ped) then return false end
     if Config.DisallowInVehicle and IsPedInAnyVehicle(ped, false) then return false end
+    if Config.DisallowFirstPerson and GetFollowPedCamViewMode() == 4 then return false end
     if Config.BlockVehicleFirstPerson and IsPedInAnyVehicle(ped, false) and GetFollowPedCamViewMode() == 4 then return false end
     if IsPedRagdoll(ped) then return false end
     if Config.DisableWhenFreeAiming and IsPlayerFreeAiming(PlayerId()) then return false end
     return true
 end
 
+-- BONETAG_HEAD — probe from face so FP zoom cannot sit past a wall.
+local BONE_HEAD = 31086
+
+--- Ray from `from` toward `to`; if map hits, return a point pulled back from the hit toward `from`.
+local function clampPointWithLos(from, to, ignoreEntity)
+    local dx, dy, dz = to.x - from.x, to.y - from.y, to.z - from.z
+    local len = math.sqrt(dx * dx + dy * dy + dz * dz)
+    if len < 0.02 then return to end
+    local extend = len + 0.35
+    local ex = from.x + (dx / len) * extend
+    local ey = from.y + (dy / len) * extend
+    local ez = from.z + (dz / len) * extend
+
+    local handle = StartShapeTestRay(from.x, from.y, from.z, ex, ey, ez, ProbeFlags, ignoreEntity, 7)
+    local retval, hit, hitCoords = GetShapeTestResult(handle)
+    if retval == 1 then
+        -- Still pending; do not block the cam thread — skip clamp for this frame.
+        return to
+    end
+
+    if hit ~= 1 or not hitCoords then
+        return to
+    end
+
+    local hx, hy, hz = hitCoords.x, hitCoords.y, hitCoords.z
+    local backX, backY, backZ = from.x - hx, from.y - hy, from.z - hz
+    local backLen = math.sqrt(backX * backX + backY * backY + backZ * backZ)
+    if backLen < 0.001 then
+        return from
+    end
+    backX, backY, backZ = backX / backLen, backY / backLen, backZ / backLen
+    return vector3(
+        hx + backX * WallClearance,
+        hy + backY * WallClearance,
+        hz + backZ * WallClearance
+    )
+end
+
+local function clampFirstPersonCamPos(ped, desired)
+    local head = GetPedBoneCoords(ped, BONE_HEAD, 0.06, 0.0, 0.0)
+    return clampPointWithLos(head, desired, ped)
+end
+
 local function getFollowTarget()
     local ped = PlayerPedId()
     local mode = GetFollowPedCamViewMode()
     if mode == 4 then
-        local coords = GetEntityCoords(ped) + (GetEntityForwardVector(ped) * 1.0)
-        return vector3(coords.x, coords.y, coords.z + 0.5), GetGameplayCamRot(2)
+        local f = GetEntityForwardVector(ped)
+        local base = GetEntityCoords(ped)
+        local raw = vector3(
+            base.x + f.x * FPForward,
+            base.y + f.y * FPForward,
+            base.z + f.z * FPForward + FPZOff
+        )
+        return clampFirstPersonCamPos(ped, raw), GetGameplayCamRot(2)
     end
     return GetGameplayCamCoord(), GetGameplayCamRot(2)
 end
@@ -170,6 +224,8 @@ CreateThread(function()
 
         local cam = zoom.cam
         if zoom.active and cam and DoesCamExist(cam) then
+            local ped = PlayerPedId()
+            local mode = GetFollowPedCamViewMode()
             local targetCoords, rotation = getFollowTarget()
             local dist = #(targetCoords - prevCoords)
             local alpha = frameLerpAlpha(BaseFollowLerp)
@@ -182,12 +238,15 @@ CreateThread(function()
                 lerp(prevCoords.y, targetCoords.y, alpha),
                 lerp(prevCoords.z, targetCoords.z, alpha)
             )
-            -- Roll (Y) is not smoothed; it often spikes and causes visible jitter.
             local smoothRot = vector3(
                 lerpAngle(prevRot.x, rotation.x, alpha),
                 rotation.y,
                 lerpAngle(prevRot.z, rotation.z, alpha)
             )
+
+            if mode == 4 then
+                smoothCoords = clampFirstPersonCamPos(ped, smoothCoords)
+            end
 
             SetCamCoord(cam, smoothCoords.x, smoothCoords.y, smoothCoords.z)
             SetCamRot(cam, smoothRot.x, smoothRot.y, smoothRot.z, 2)

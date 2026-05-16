@@ -9,7 +9,7 @@ No framework, no bridge, no `ox_lib` requirement.
 - **Hold-to-zoom** via native `RegisterKeyMapping` (reliable hold / release; avoids “stuck” keybind edge cases)
 - **Smoothed** camera follow with optional **snap** on huge position jumps (teleports / large deltas)
 - **Safety guards**: pause menu, death, ragdoll, optional block while **ADS**
-- **Vehicle defaults**: zoom disabled in vehicles by default to avoid bad interior / first-person cockpit camera
+- **First-person wall clamp**: ray from head toward the zoom point so the cam cannot sit past a wall when hugging geometry
 - **`exports('blockZoom', ...)`** so other resources can temporarily disable zoom
 
 ## Installation
@@ -43,9 +43,14 @@ Edit `config.lua`:
 | `Config.ZoomFov` | Scripted camera FOV while zooming (lower = more zoom) |
 | `Config.BaseFollowLerp` | Follow smoothing (0.0–1.0); lower = smoother, less jitter |
 | `Config.SnapDistance` | If target camera jumps farther than this (meters), snap instead of smooth |
+| `Config.FirstPersonForward` | First-person: how far ahead of the ped the zoom target sits (meters) |
+| `Config.FirstPersonZOffset` | First-person: vertical offset on that target (meters) |
+| `Config.WallClearance` | First-person: keep scripted cam this far in front of hit geometry |
+| `Config.CollisionProbeFlags` | Raycast flags for wall probe (bitmask; change if thin props block wrongly) |
 | `Config.KeyMapper` / `Config.KeyZoom` | Default key mapping strings |
 | `Config.DisableWhenFreeAiming` | End zoom while aiming down sights |
 | `Config.DisallowInVehicle` | Block zoom while in any vehicle |
+| `Config.DisallowFirstPerson` | Block zoom while in first-person view (on foot) |
 | `Config.BlockVehicleFirstPerson` | Extra block when in vehicle **and** first-person view mode |
 | `Config.VersionCheck` | On server start, compare local version to [GitHub `version` file](https://github.com/DrCroll/Croll-Zoom) |
 
